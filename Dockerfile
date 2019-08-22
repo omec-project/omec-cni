@@ -45,6 +45,12 @@ RUN wget -O /bin/vfioveth https://raw.githubusercontent.com/clearlinux/cloud-nat
 RUN wget -O /bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
 RUN chmod +x /bin/vfioveth /bin/jq
 
+# Copy static IPAM plugin
+FROM busybox as static
+RUN wget https://github.com/containernetworking/plugins/releases/download/v0.8.2/cni-plugins-linux-amd64-v0.8.2.tgz
+RUN tar xvfz cni-plugins-linux-amd64-v0.8.2.tgz
+RUN cp ./static /bin/static
+
 # Final image
 FROM centos/systemd as omec-cni
 WORKDIR /tmp/cni/bin
@@ -53,19 +59,6 @@ COPY --from=sriov-cni /go/src/github.com/intel-corp/sriov-cni/bin/sriov .
 COPY --from=centralip-ipam /go/src/github.com/John-Lin/ovs-cni/bin/centralip .
 COPY --from=vfioveth /bin/vfioveth .
 COPY --from=vfioveth /bin/jq .
+COPY --from=static /bin/static .
 WORKDIR /usr/bin
 COPY --from=sriov-dp /go/src/github.com/intel/sriov-network-device-plugin/build/sriovdp .
-
-ARG org_label_schema_version=unknown
-ARG org_label_schema_vcs_url=unknown
-ARG org_label_schema_vcs_ref=unknown
-ARG org_label_schema_build_date=unknown
-ARG org_opencord_vcs_commit_date=unknown
-
-LABEL org.label-schema.schema-version=1.0 \
-      org.label-schema.name=omec-cni \
-      org.label-schema.version=$org_label_schema_version \
-      org.label-schema.vcs-url=$org_label_schema_vcs_url \
-      org.label-schema.vcs-ref=$org_label_schema_vcs_ref \
-      org.label-schema.build-date=$org_label_schema_build_date \
-      org.opencord.vcs-commit-date=$org_opencord_vcs_commit_date
