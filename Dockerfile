@@ -14,12 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Build multus plugin
-FROM golang:1.10 AS multus
-RUN git clone -q --depth 1 https://github.com/intel/multus-cni.git /go/src/github.com/intel/multus-cni
-WORKDIR /go/src/github.com/intel/multus-cni
-RUN ./build
-
 # Build sriov plugin
 FROM golang:1.10 AS sriov-cni
 RUN git clone -q -b dev/k8s-deviceid-model https://github.com/Intel-Corp/sriov-cni.git /go/src/github.com/intel-corp/sriov-cni
@@ -54,9 +48,7 @@ RUN cp ./static /bin/static
 # Final image
 FROM centos/systemd as omec-cni
 WORKDIR /tmp/cni/bin
-COPY --from=multus /go/src/github.com/intel/multus-cni/bin/multus .
 COPY --from=sriov-cni /go/src/github.com/intel-corp/sriov-cni/bin/sriov .
-COPY --from=centralip-ipam /go/src/github.com/John-Lin/ovs-cni/bin/centralip .
 COPY --from=vfioveth /bin/vfioveth .
 COPY --from=vfioveth /bin/jq .
 COPY --from=static /bin/static .
