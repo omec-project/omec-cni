@@ -30,7 +30,7 @@ ipam() {
 
 add_pair_ns() {
 	vfpci=$(echo $CNI_CONF | jq -r '.deviceID')
-	mac=$(echo $CNI_CONF | jq -r '.runtimeConfig.mac')
+	mac=$(echo $CNI_CONF | jq -r '.runtimeConfig.mac // empty')
 	if [ -z "$mac" ]; then
 		mac=$(get_mac_with_vfpci $vfpci)
 	fi
