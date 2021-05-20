@@ -15,8 +15,8 @@
 # limitations under the License.
 
 FROM busybox:1.33.0 as static
-RUN wget https://github.com/containernetworking/plugins/releases/download/v0.8.2/cni-plugins-linux-amd64-v0.8.2.tgz
-RUN tar xvfz cni-plugins-linux-amd64-v0.8.2.tgz
+RUN wget https://github.com/containernetworking/plugins/releases/download/v0.9.1/cni-plugins-linux-amd64-v0.9.1.tgz
+RUN tar xvfz cni-plugins-linux-amd64-v0.9.1.tgz
 RUN cp ./static /bin/static
 RUN cp ./dhcp /bin/dhcp
 RUN wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
