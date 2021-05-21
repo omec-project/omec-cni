@@ -22,6 +22,18 @@ get_mac_with_vfpci() {
 	echo $mac
 }
 
+add_vlan() {
+	vfpci=$(echo $CNI_CONF | jq -r '.deviceID')
+        local pf=$(readlink /sys/devices/pci*/*/$vfpci/physfn | awk '{print substr($1,4)}')
+        local pfName=$(ls /sys/devices/pci*/*/$pf/net/ | head -1)
+        local idx=$(ls -l /sys/devices/pci*/*/$pf | awk -v vf=$vfpci 'substr($11,4)==vf {print substr($9,7)}')
+
+        vlan=$(echo $CNI_CONF | jq -r '.vlan // empty')
+        if [ ! -z "$vlan" ]; then
+	        ip link set $pfName vf $idx vlan $vlan
+        fi
+}
+
 ipam() {
 	local plugin=$(echo $CNI_CONF | jq -r '.ipam.type')
 	local res=$(echo $"$CNI_CONF" | "$plugin" | jq -c '.')
@@ -50,17 +62,31 @@ delete_pair_ns() {
 	ip netns exec $CNI_CONTAINERID ip link del $CNI_IFNAME
 }
 
+delete_vlan() {
+	vfpci=$(echo $CNI_CONF | jq -r '.deviceID')
+        local pf=$(readlink /sys/devices/pci*/*/$vfpci/physfn | awk '{print substr($1,4)}')
+        local pfName=$(ls /sys/devices/pci*/*/$pf/net/ | head -1)
+        local idx=$(ls -l /sys/devices/pci*/*/$pf | awk -v vf=$vfpci 'substr($11,4)==vf {print substr($9,7)}')
+
+        vlan=$(echo $CNI_CONF | jq -r '.vlan // empty')
+        if [ ! -z "$vlan" ]; then
+                ip link set $pfName vf $idx vlan 0
+        fi
+}
+
 case $CNI_COMMAND in
 ADD)
 	res=$(ipam)
 	ip=$(echo $res | jq -r '.ips[0].address')
 	add_pair_ns $ip
+	add_vlan
 	echo '{"cniVersion":"0.3.1"}' | jq -c --arg ip $ip '.ips[0].address = $ip' >&3
 	;;
 DEL)
 	set +o errexit
 	ipam
 	delete_pair_ns
+	delete_vlan
 	set -o errexit
 	;;
 *)
