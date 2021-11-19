@@ -15,23 +15,27 @@ get_peer_name() {
 }
 
 get_mac_with_vfpci() {
-	local pf=$(readlink /sys/devices/pci*/*/$1/physfn | awk '{print substr($1,4)}')
-	local pfName=$(ls /sys/devices/pci*/*/$pf/net/ | head -1)
-	local idx=$(ls -l /sys/devices/pci*/*/$pf | awk -v vf=$1 'substr($11,4)==vf {print substr($9,7)}')
+	local vfdir=$(find /sys/devices/pci* -name $1)
+	local pf=$(readlink $vfdir/physfn | awk '{print substr($1,4)}')
+	local pfdir=$(find /sys/devices/pci* -name $pf)
+	local pfName=$(ls $pfdir/net/ | head -1)
+	local idx=$(ls -l $pfdir | awk -v vf=$1 'substr($11,4)==vf {print substr($9,7)}')
 	local mac=$(ip link show dev $pfName | awk -v idx="$idx" '$1=="vf" && $2==idx {print substr($4,1,17)}')
 	echo $mac
 }
 
 add_vlan() {
 	vfpci=$(echo $CNI_CONF | jq -r '.deviceID')
-        local pf=$(readlink /sys/devices/pci*/*/$vfpci/physfn | awk '{print substr($1,4)}')
-        local pfName=$(ls /sys/devices/pci*/*/$pf/net/ | head -1)
-        local idx=$(ls -l /sys/devices/pci*/*/$pf | awk -v vf=$vfpci 'substr($11,4)==vf {print substr($9,7)}')
+	local vfdir=$(find /sys/devices/pci* -name $vfpci)
+	local pf=$(readlink $vfdir/physfn | awk '{print substr($1,4)}')
+	local pfdir=$(find /sys/devices/pci* -name $pf)
+	local pfName=$(ls $pfdir/net/ | head -1)
+	local idx=$(ls -l $pfdir | awk -v vf=$vfpci 'substr($11,4)==vf {print substr($9,7)}')
 
-        vlan=$(echo $CNI_CONF | jq -r '.vlan // empty')
-        if [ ! -z "$vlan" ]; then
+	vlan=$(echo $CNI_CONF | jq -r '.vlan // empty')
+	if [ ! -z "$vlan" ]; then
 	        ip link set $pfName vf $idx vlan $vlan
-        fi
+	fi
 }
 
 ipam() {
@@ -64,14 +68,16 @@ delete_pair_ns() {
 
 delete_vlan() {
 	vfpci=$(echo $CNI_CONF | jq -r '.deviceID')
-        local pf=$(readlink /sys/devices/pci*/*/$vfpci/physfn | awk '{print substr($1,4)}')
-        local pfName=$(ls /sys/devices/pci*/*/$pf/net/ | head -1)
-        local idx=$(ls -l /sys/devices/pci*/*/$pf | awk -v vf=$vfpci 'substr($11,4)==vf {print substr($9,7)}')
+	local vfdir=$(find /sys/devices/pci* -name $vfpci)
+	local pf=$(readlink $vfdir/physfn | awk '{print substr($1,4)}')
+	local pfdir=$(find /sys/devices/pci* -name $pf)
+	local pfName=$(ls $pfdir/net/ | head -1)
+	local idx=$(ls -l $pfdir | awk -v vf=$vfpci 'substr($11,4)==vf {print substr($9,7)}')
 
-        vlan=$(echo $CNI_CONF | jq -r '.vlan // empty')
-        if [ ! -z "$vlan" ]; then
-                ip link set $pfName vf $idx vlan 0
-        fi
+	vlan=$(echo $CNI_CONF | jq -r '.vlan // empty')
+	if [ ! -z "$vlan" ]; then
+		ip link set $pfName vf $idx vlan 0
+	fi
 }
 
 case $CNI_COMMAND in
