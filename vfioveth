@@ -15,9 +15,9 @@ get_peer_name() {
 }
 
 get_mac_with_vfpci() {
-	local vfdir=$(find /sys/devices/pci* -name $1)
+	local vfdir=$(find /sys/devices/pci* -name $1 | grep -v iommu)
 	local pf=$(readlink $vfdir/physfn | awk '{print substr($1,4)}')
-	local pfdir=$(find /sys/devices/pci* -name $pf)
+	local pfdir=$(find /sys/devices/pci* -name $pf | grep -v iommu)
 	local pfName=$(ls $pfdir/net/ | head -1)
 	local idx=$(ls -l $pfdir | awk -v vf=$1 'substr($11,4)==vf {print substr($9,7)}')
 	local mac=$(ip link show dev $pfName | awk -v idx="$idx" '$1=="vf" && $2==idx {print substr($4,1,17)}')
@@ -26,9 +26,9 @@ get_mac_with_vfpci() {
 
 add_vlan() {
 	vfpci=$(echo $CNI_CONF | jq -r '.deviceID')
-	local vfdir=$(find /sys/devices/pci* -name $vfpci)
+	local vfdir=$(find /sys/devices/pci* -name $vfpci | grep -v iommu)
 	local pf=$(readlink $vfdir/physfn | awk '{print substr($1,4)}')
-	local pfdir=$(find /sys/devices/pci* -name $pf)
+	local pfdir=$(find /sys/devices/pci* -name $pf | grep -v iommu)
 	local pfName=$(ls $pfdir/net/ | head -1)
 	local idx=$(ls -l $pfdir | awk -v vf=$vfpci 'substr($11,4)==vf {print substr($9,7)}')
 
@@ -68,9 +68,9 @@ delete_pair_ns() {
 
 delete_vlan() {
 	vfpci=$(echo $CNI_CONF | jq -r '.deviceID')
-	local vfdir=$(find /sys/devices/pci* -name $vfpci)
+	local vfdir=$(find /sys/devices/pci* -name $vfpci | grep -v iommu)
 	local pf=$(readlink $vfdir/physfn | awk '{print substr($1,4)}')
-	local pfdir=$(find /sys/devices/pci* -name $pf)
+	local pfdir=$(find /sys/devices/pci* -name $pf | grep -v iommu)
 	local pfName=$(ls $pfdir/net/ | head -1)
 	local idx=$(ls -l $pfdir | awk -v vf=$vfpci 'substr($11,4)==vf {print substr($9,7)}')
 
