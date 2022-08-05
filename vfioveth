@@ -1,5 +1,10 @@
 #!/bin/bash -x
 
+# Copyright 2022-present Open Networking Foundation
+#
+# SPDX-License-Identifier: Apache-2.0
+
+
 set -o errexit
 set -o pipefail
 set -o nounset
