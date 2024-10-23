@@ -1,5 +1,5 @@
 # Copyright 2019-present Open Networking Foundation
-# SPDX-FileCopyrightText: 2019 Intel Corporation
+# Copyright (c) 2019-present Intel Corporation
 #
 # SPDX-License-Identifier: Apache-2.0
 
