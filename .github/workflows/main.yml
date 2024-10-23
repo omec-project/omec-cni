@@ -29,11 +29,8 @@ jobs:
 
       - name: Dockerfile linter
         uses: hadolint/hadolint-action@v3.1.0
-        # For now, ignoring:
-        # DL3018 warning: Pin versions in apk add (e.g., apk add <package>=<version>)
         with:
           dockerfile: Dockerfile
-          ignore: DL3018
 
   license-check:
     runs-on: ubuntu-latest
