@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-FROM busybox:1.33.0 as static
+FROM busybox:1.37.0 as static
 RUN wget https://github.com/containernetworking/plugins/releases/download/v0.9.1/cni-plugins-linux-amd64-v0.9.1.tgz
 RUN tar xvfz cni-plugins-linux-amd64-v0.9.1.tgz
 RUN cp ./static /bin/static
